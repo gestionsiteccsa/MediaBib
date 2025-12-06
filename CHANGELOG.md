@@ -20,37 +20,28 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### Added
 
-- Configuration complète des tests avec pytest et pytest-django
-- Tests unitaires pour l'application `home` (couverture 100%)
-- Fichier `pytest.ini` pour la configuration des tests
-- Fichier `conftest.py` avec les fixtures globales
-- Fichier `pyproject.toml` pour la configuration des outils (Black, isort, flake8, bandit, coverage)
-- Fichier `.pre-commit-config.yaml` pour les hooks pre-commit
-- Fichier `.editorconfig` pour la configuration universelle des éditeurs
-- Fichier `Makefile` avec les commandes utiles (install, test, lint, run)
-- Fichier `CONTRIBUTING.md` avec le guide de contribution
-- Fichier `LICENSE` (AGPL-3.0)
-- Dépendances de développement : pytest, pytest-django, pytest-cov, factory-boy, coverage, black, isort, flake8, bandit, pre-commit
+- Script `dev.ps1` pour Windows PowerShell (remplace Makefile)
+- Fichier `.flake8` pour la configuration du linter
+- Documentation complète dans `docs/` :
+  - `README.md` : Index de la documentation
+  - `INSTALLATION.md` : Guide d'installation
+  - `ARCHITECTURE.md` : Architecture technique
+  - `USER_GUIDE.md` : Manuel utilisateur
+  - `ADMIN_GUIDE.md` : Guide d'administration
+  - `DEVELOPMENT.md` : Guide du développeur
+  - `API.md` : Documentation de l'API REST
+  - `ACCESSIBILITY.md` : Conformité accessibilité WCAG/RGAA
 
 ### Changed
 
-- Mise à jour de `requirements.txt` avec les dépendances de test et qualité de code
-
-### Deprecated
-
-- (Aucune dépréciation pour l'instant)
-
-### Removed
-
-- (Aucune suppression pour l'instant)
+- Formatage du code avec Black et isort
+- Correction des erreurs de linting (flake8)
+- Amélioration des docstrings dans les fichiers Python
 
 ### Fixed
 
-- (Aucune correction pour l'instant)
-
-### Security
-
-- (Aucune correction de sécurité pour l'instant)
+- Correction des espaces blancs dans les docstrings (`conftest.py`)
+- Ajout des commentaires `noqa` pour les imports non utilisés (`admin.py`, `models.py`)
 
 ---
 

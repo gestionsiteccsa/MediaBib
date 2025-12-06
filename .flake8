@@ -1,0 +1,51 @@
+[flake8]
+# =============================================================================
+# Configuration Flake8 pour MediaBib
+# =============================================================================
+
+# Longueur de ligne (compatible avec Black)
+max-line-length = 88
+
+# Ignorer certaines erreurs pour compatibilité Black
+extend-ignore =
+    E203,
+    W503,
+    E501,
+    E266
+
+# Dossiers à exclure
+exclude =
+    .git,
+    __pycache__,
+    env,
+    venv,
+    .venv,
+    ENV,
+    migrations,
+    staticfiles,
+    static,
+    media,
+    node_modules,
+    .pytest_cache,
+    htmlcov,
+    *.egg-info,
+    build,
+    dist,
+    .tox,
+    .mypy_cache
+
+# Ignorer certaines erreurs par fichier
+per-file-ignores =
+    __init__.py:F401,F403
+    settings.py:E501,F401
+    conftest.py:E501,F401
+    */tests/*:S101
+
+# Statistiques
+statistics = True
+count = True
+show-source = True
+
+# Complexité maximale
+max-complexity = 10
+

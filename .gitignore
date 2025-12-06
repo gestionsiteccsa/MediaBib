@@ -63,9 +63,10 @@ staticfiles/
 static_collected/
 
 # =================================
-# Documentation (as requested)
+# Documentation générée (Sphinx, etc.)
 # =================================
-docs/
+# docs/_build/
+# Ne pas ignorer docs/ car on veut la documentation dans le repo
 
 # =================================
 # IDE / Editors
