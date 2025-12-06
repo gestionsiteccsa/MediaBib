@@ -1,0 +1,84 @@
+# =============================================================================
+# Configuration Pre-commit Hooks pour MediaBib
+# =============================================================================
+# Installation: pip install pre-commit && pre-commit install
+# Exécution manuelle: pre-commit run --all-files
+
+repos:
+  # Hooks standard
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: "Supprimer les espaces en fin de ligne"
+      - id: end-of-file-fixer
+        name: "Ajouter une ligne vide en fin de fichier"
+      - id: check-yaml
+        name: "Valider les fichiers YAML"
+      - id: check-json
+        name: "Valider les fichiers JSON"
+      - id: check-toml
+        name: "Valider les fichiers TOML"
+      - id: check-added-large-files
+        name: "Vérifier les gros fichiers"
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+        name: "Détecter les conflits de merge"
+      - id: debug-statements
+        name: "Détecter les instructions de debug"
+      - id: check-docstring-first
+        name: "Vérifier les docstrings"
+
+  # Formatage Python avec Black
+  - repo: https://github.com/psf/black
+    rev: 24.1.0
+    hooks:
+      - id: black
+        name: "Formater avec Black"
+        language_version: python3
+
+  # Tri des imports avec isort
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: "Trier les imports"
+        args: ["--profile", "black"]
+
+  # Linting avec flake8
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        name: "Linter avec flake8"
+        additional_dependencies:
+          - flake8-docstrings
+          - flake8-bugbear
+
+  # Sécurité avec Bandit
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.7
+    hooks:
+      - id: bandit
+        name: "Vérifier la sécurité"
+        args: ["-c", "pyproject.toml"]
+        additional_dependencies: ["bandit[toml]"]
+
+  # Vérification des migrations Django
+  - repo: local
+    hooks:
+      - id: django-check
+        name: "Django check"
+        entry: python manage.py check
+        language: system
+        pass_filenames: false
+        types: [python]
+
+# Configuration globale
+default_language_version:
+  python: python3
+
+ci:
+  autofix_commit_msg: "style: corrections automatiques pre-commit"
+  autoupdate_commit_msg: "chore: mise à jour des hooks pre-commit"
+

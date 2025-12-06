@@ -20,19 +20,21 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### Added
 
-- Initialisation du projet Django 5.2
-- Configuration sécurisée avec python-decouple
-- Application `home` avec page d'accueil
-- Template de base `base.html`
-- Configuration des paramètres de production (HSTS, cookies sécurisés)
-- Support PostgreSQL via dj-database-url
-- Fichier `.cursorrules` avec les règles du projet
-- Planning Trello (`PLANNING_TRELLO.md`)
-- Ce fichier CHANGELOG
+- Configuration complète des tests avec pytest et pytest-django
+- Tests unitaires pour l'application `home` (couverture 100%)
+- Fichier `pytest.ini` pour la configuration des tests
+- Fichier `conftest.py` avec les fixtures globales
+- Fichier `pyproject.toml` pour la configuration des outils (Black, isort, flake8, bandit, coverage)
+- Fichier `.pre-commit-config.yaml` pour les hooks pre-commit
+- Fichier `.editorconfig` pour la configuration universelle des éditeurs
+- Fichier `Makefile` avec les commandes utiles (install, test, lint, run)
+- Fichier `CONTRIBUTING.md` avec le guide de contribution
+- Fichier `LICENSE` (AGPL-3.0)
+- Dépendances de développement : pytest, pytest-django, pytest-cov, factory-boy, coverage, black, isort, flake8, bandit, pre-commit
 
 ### Changed
 
-- (Aucun changement pour l'instant)
+- Mise à jour de `requirements.txt` avec les dépendances de test et qualité de code
 
 ### Deprecated
 
@@ -48,9 +50,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### Security
 
-- Configuration des headers de sécurité en production
-- Protection CSRF activée
-- Validation des mots de passe Django
+- (Aucune correction de sécurité pour l'instant)
 
 ---
 
