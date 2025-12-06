@@ -80,7 +80,7 @@ docs/
 .settings/
 *.sublime-project
 *.sublime-workspace
-
+.cursorrules
 # =================================
 # OS Files
 # =================================
