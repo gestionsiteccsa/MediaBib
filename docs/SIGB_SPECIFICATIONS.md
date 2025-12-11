@@ -425,23 +425,57 @@ graph TB
 |---------------------|-------------|--------------|
 | Import UNIMARC | Notices ISO 2709 | Notices |
 | Export UNIMARC | Notices ISO 2709 | Notices |
+| **Import PMB XML UNIMARC** | Import notices et exemplaires depuis PMB au format XML UNIMARC avec sélection médiathèque cible, détection doublons par ISBN, création notices si absentes ou ajout exemplaires si existantes | Notices, Exemplaires, Sites |
+| **Export multi-formats** | Export XML UNIMARC, CSV, JSON, ISO 2709 avec options de filtrage et sélection | Notices, Exemplaires |
 | Import exemplaires | CSV/Excel | Exemplaires |
 | Export exemplaires | CSV/Excel | Exemplaires |
 | Import lecteurs | CSV/Excel | Lecteurs |
 | Export lecteurs | CSV/Excel | Lecteurs |
 | Import autorités | CSV/UNIMARC | Autorités |
 | Export autorités | CSV/UNIMARC | Autorités |
-| Migration PMB | Import complet | Tous |
+| Migration PMB | Import complet depuis PMB | Tous |
 | Import Electre | Catalogue commercial | Acquisitions, Notices |
 | Import BnF | Récupération notices | Notices, Z39.50 |
 | Mapping de champs | Correspondance import | Administration |
-| Gestion des doublons | Détection/fusion | Notices |
-| Logs d'import | Rapport erreurs | Logs |
+| Gestion des doublons | Détection/fusion par ISBN | Notices |
+| Logs d'import | Rapport erreurs détaillé | Logs |
 | Import programmé | Automatisation | Administration |
 | Export programmé | Automatisation | Administration |
 | Dublin Core | Interopérabilité | Notices |
 | METS/MODS | Métadonnées | Ressources numériques |
 | EAD | Archives | Notices |
+
+#### Détails Import PMB XML UNIMARC
+
+**Processus d'import** :
+1. Sélection du fichier XML UNIMARC exporté depuis PMB
+2. Sélection de la médiathèque cible MediaBib (liste déroulante)
+3. Parsing du fichier XML et extraction des notices et exemplaires
+4. Pour chaque notice :
+   - Extraction de l'ISBN (champ UNIMARC 010$a)
+   - Recherche de notice existante dans MediaBib par ISBN
+   - **Si notice existe** : Ajout des exemplaires uniquement à la médiathèque cible
+   - **Si notice n'existe pas** : Création complète de la notice avec tous les champs UNIMARC + création des exemplaires
+5. Conservation des codes-barres PMB ou génération automatique
+6. Rattachement des exemplaires à la médiathèque cible sélectionnée
+7. Génération d'un rapport d'import détaillé (notices créées, exemplaires ajoutés, erreurs)
+
+**Logique de détection de doublons** :
+- Recherche par ISBN (champ 010$a en UNIMARC)
+- Si ISBN identique → notice existante → ajout exemplaires uniquement
+- Si ISBN différent ou absent → nouvelle notice complète
+
+**Formats d'export disponibles** :
+- XML UNIMARC (format standard)
+- CSV (pour tableurs)
+- JSON (pour intégrations)
+- ISO 2709 (format binaire UNIMARC)
+
+**Options d'export** :
+- Sélection de médiathèque(s) source(s)
+- Filtres (type de document, date, disponibilité)
+- Inclusion des exemplaires
+- Inclusion des autorités
 
 ### 15. Module Z39.50 / SRU-SRW
 

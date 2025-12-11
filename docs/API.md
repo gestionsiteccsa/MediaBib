@@ -8,7 +8,14 @@ Documentation de l'API REST de MediaBib.
 
 ## Vue d'ensemble
 
-L'API MediaBib permet d'interagir avec le système de gestion de bibliothèque de manière programmatique.
+L'API MediaBib permet d'interagir avec le système de gestion de bibliothèque de manière programmatique. Elle est **principalement destinée au front-end OPAC** (portail public), mais peut également être utilisée pour créer des applications personnalisées ou des intégrations tierces.
+
+### Architecture API
+
+MediaBib expose deux types d'endpoints :
+
+1. **Endpoints OPAC (Public)** : Accessibles aux visiteurs et lecteurs pour le portail public
+2. **Endpoints Admin (Privés)** : Réservés aux bibliothécaires et administrateurs pour la gestion du système
 
 ### Base URL
 
@@ -16,19 +23,35 @@ L'API MediaBib permet d'interagir avec le système de gestion de bibliothèque d
 https://votre-instance.com/api/v1/
 ```
 
+**Endpoints OPAC** :
+```
+https://votre-instance.com/api/v1/opac/
+```
+
+**Endpoints Admin** :
+```
+https://votre-instance.com/api/v1/admin/
+```
+
+**```
+
 ### Authentification
 
-L'API utilise l'authentification JWT (JSON Web Tokens).
+L'API utilise **deux méthodes d'authentification** selon le contexte :
 
-#### Obtenir un token
+#### 1. Authentification OPAC (Front-end public)
+
+**Méthode** : JWT (JSON Web Tokens) pour les lecteurs
+
+**Obtenir un token pour un lecteur** :
 
 ```http
-POST /api/v1/auth/token/
+POST /api/v1/opac/auth/login/
 Content-Type: application/json
 
 {
-    "username": "votre_utilisateur",
-    "password": "votre_mot_de_passe"
+    "email": "lecteur@example.com",
+    "password": "mot_de_passe"
 }
 ```
 
@@ -37,20 +60,180 @@ Content-Type: application/json
 ```json
 {
     "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
-    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+    "user": {
+        "id": 42,
+        "email": "lecteur@example.com",
+        "first_name": "Marie",
+        "last_name": "Dupont"
+    }
 }
 ```
 
-#### Utiliser le token
+**Utiliser le token** :
 
 ```http
-GET /api/v1/documents/
+GET /api/v1/opac/loans/
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
 ```
+
+#### 2. Authentification Admin (Back-end)
+
+**Méthode** : Sessions Django (cookies) pour les bibliothécaires
+
+Les endpoints admin utilisent l'authentification Django classique avec sessions. L'accès se fait via l'interface web d'administration.
+
+**Note** : Les endpoints admin peuvent également supporter l'authentification JWT pour les intégrations tierces (API keys).
 
 ---
 
 ## Endpoints
+
+### Import/Export
+
+#### Import PMB XML UNIMARC
+
+Import de notices et exemplaires depuis PMB au format XML UNIMARC.
+
+```http
+POST /api/v1/catalog/import/pmb/
+Content-Type: multipart/form-data
+Authorization: Bearer {token}
+
+{
+    "file": <fichier_xml>,
+    "library_id": 1,
+    "options": {
+        "detect_duplicates": true,
+        "preserve_barcodes": true,
+        "generate_barcodes": true
+    }
+}
+```
+
+**Paramètres :**
+- `file` (requis) : Fichier XML UNIMARC exporté depuis PMB
+- `library_id` (requis) : ID de la médiathèque cible dans MediaBib
+- `options` (optionnel) :
+  - `detect_duplicates` : Détection de doublons par ISBN (défaut: true)
+  - `preserve_barcodes` : Conservation des codes-barres PMB (défaut: true)
+  - `generate_barcodes` : Génération automatique si absent (défaut: true)
+
+**Réponse :**
+
+```json
+{
+    "status": "success",
+    "import_id": 123,
+    "statistics": {
+        "notices_processed": 500,
+        "notices_created": 380,
+        "notices_enriched": 120,
+        "items_added": 850,
+        "authorities_created": 250,
+        "errors": 5
+    },
+    "errors": [
+        {
+            "notice_index": 123,
+            "isbn": "9781234567890",
+            "error": "ISBN invalide"
+        }
+    ]
+}
+```
+
+**Logique de traitement :**
+- Pour chaque notice dans le fichier XML :
+  - Extraction de l'ISBN (champ UNIMARC 010$a)
+  - Recherche de notice existante par ISBN
+  - Si trouvée : ajout des exemplaires uniquement à la médiathèque cible
+  - Si non trouvée : création complète de la notice + exemplaires
+
+#### Statut d'import
+
+Consulter le statut d'un import en cours ou terminé.
+
+```http
+GET /api/v1/catalog/import/{import_id}/
+Authorization: Bearer {token}
+```
+
+**Réponse :**
+
+```json
+{
+    "import_id": 123,
+    "status": "completed",
+    "progress": 100,
+    "statistics": {
+        "notices_processed": 500,
+        "notices_created": 380,
+        "notices_enriched": 120,
+        "items_added": 850,
+        "errors": 5
+    },
+    "started_at": "2024-12-15T10:00:00Z",
+    "completed_at": "2024-12-15T10:05:30Z"
+}
+```
+
+#### Export multi-formats
+
+Export de notices et exemplaires dans différents formats.
+
+```http
+POST /api/v1/catalog/export/
+Content-Type: application/json
+Authorization: Bearer {token}
+
+{
+    "format": "xml_unimarc",
+    "library_ids": [1, 2, 3],
+    "filters": {
+        "record_type": "book",
+        "date_from": "2024-01-01",
+        "date_to": "2024-12-31"
+    },
+    "options": {
+        "include_items": true,
+        "include_authorities": true
+    }
+}
+```
+
+**Paramètres :**
+- `format` (requis) : Format d'export (`xml_unimarc`, `csv`, `json`, `iso2709`)
+- `library_ids` (optionnel) : Liste des IDs de médiathèques à exporter (toutes si omis)
+- `filters` (optionnel) :
+  - `record_type` : Type de document (book, cd, dvd, etc.)
+  - `date_from` / `date_to` : Période de création des notices
+  - `availability` : Disponibilité (available, loaned, reserved)
+- `options` (optionnel) :
+  - `include_items` : Inclure les exemplaires (défaut: true)
+  - `include_authorities` : Inclure les autorités (défaut: true)
+
+**Réponse :**
+
+```json
+{
+    "status": "processing",
+    "export_id": 456,
+    "download_url": "/api/v1/catalog/export/456/download/",
+    "estimated_time": 120
+}
+```
+
+**Téléchargement du fichier :**
+
+```http
+GET /api/v1/catalog/export/{export_id}/download/
+Authorization: Bearer {token}
+```
+
+Retourne le fichier d'export dans le format demandé.
+
+---
 
 ### Documents
 
@@ -439,8 +622,231 @@ const data = await response.json();
 
 ---
 
+## Front-end personnalisé
+
+MediaBib fournit un **squelette de base** pour le front-end OPAC (Django Templates + JavaScript), mais vous pouvez créer votre propre front-end avec n'importe quelle technologie en utilisant uniquement l'API REST.
+
+### Technologies supportées
+
+Vous pouvez créer votre front-end avec :
+
+- **Frameworks JavaScript** : React, Vue.js, Angular, Svelte, Next.js, Nuxt.js
+- **Frameworks CSS** : Tailwind CSS, Bootstrap, Material-UI, Chakra UI
+- **Langages** : TypeScript, JavaScript (ES6+)
+- **Outils de build** : Webpack, Vite, Parcel, Rollup
+- **Applications mobiles** : React Native, Flutter, Ionic
+
+### Exemple d'intégration React
+
+```jsx
+// components/Search.jsx
+import React, { useState } from 'react';
+import { searchRecords } from '../services/api';
+
+function Search() {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const data = await searchRecords(query);
+      setResults(data.results);
+    } catch (error) {
+      console.error('Erreur de recherche:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSearch}>
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Rechercher dans le catalogue..."
+      />
+      <button type="submit" disabled={loading}>
+        {loading ? 'Recherche...' : 'Rechercher'}
+      </button>
+      <ul>
+        {results.map(record => (
+          <li key={record.id}>
+            <h3>{record.title}</h3>
+            <p>{record.author}</p>
+          </li>
+        ))}
+      </ul>
+    </form>
+  );
+}
+```
+
+### Exemple d'intégration Vue.js
+
+```vue
+<!-- components/Search.vue -->
+<template>
+  <form @submit.prevent="handleSearch">
+    <input
+      v-model="query"
+      type="text"
+      placeholder="Rechercher dans le catalogue..."
+    />
+    <button type="submit" :disabled="loading">
+      {{ loading ? 'Recherche...' : 'Rechercher' }}
+    </button>
+    <ul>
+      <li v-for="record in results" :key="record.id">
+        <h3>{{ record.title }}</h3>
+        <p>{{ record.author }}</p>
+      </li>
+    </ul>
+  </form>
+</template>
+
+<script>
+import { searchRecords } from '@/services/api';
+
+export default {
+  data() {
+    return {
+      query: '',
+      results: [],
+      loading: false
+    };
+  },
+  methods: {
+    async handleSearch() {
+      this.loading = true;
+      try {
+        const data = await searchRecords(this.query);
+        this.results = data.results;
+      } catch (error) {
+        console.error('Erreur de recherche:', error);
+      } finally {
+        this.loading = false;
+      }
+    }
+  }
+};
+</script>
+```
+
+### Client API réutilisable
+
+```javascript
+// services/api.js
+import axios from 'axios';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://mediabib.example.com/api/v1/opac';
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Intercepteur pour ajouter le token JWT
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('jwt_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Gestion des erreurs
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expiré, rediriger vers la page de connexion
+      localStorage.removeItem('jwt_token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Fonctions API
+export const searchRecords = (query, filters = {}) => {
+  return apiClient.get('/search/', {
+    params: { q: query, ...filters }
+  }).then(res => res.data);
+};
+
+export const getRecord = (id) => {
+  return apiClient.get(`/records/${id}/`).then(res => res.data);
+};
+
+export const login = (email, password) => {
+  return apiClient.post('/auth/login/', {
+    email,
+    password
+  }).then(res => {
+    localStorage.setItem('jwt_token', res.data.access);
+    return res.data;
+  });
+};
+
+export const getCurrentLoans = () => {
+  return apiClient.get('/loans/').then(res => res.data);
+};
+
+export const createHold = (recordId) => {
+  return apiClient.post('/holds/', {
+    record_id: recordId
+  }).then(res => res.data);
+};
+
+export const renewLoan = (loanId) => {
+  return apiClient.post(`/loans/${loanId}/renew/`).then(res => res.data);
+};
+```
+
+### Configuration CORS
+
+Pour permettre les requêtes depuis un front-end personnalisé, configurez CORS dans Django :
+
+```python
+# settings.py
+CORS_ALLOWED_ORIGINS = [
+    "https://votre-frontend.com",
+    "http://localhost:3000",  # Développement
+]
+
+CORS_ALLOW_CREDENTIALS = True
+```
+
+### Documentation OpenAPI/Swagger
+
+La documentation complète de l'API est disponible au format OpenAPI :
+
+```
+GET /api/schema/
+```
+
+Cela permet de générer automatiquement des clients API pour différents langages et frameworks.
+
+### Bonnes pratiques
+
+1. **Gestion des tokens** : Stocker le JWT de manière sécurisée (localStorage ou httpOnly cookies)
+2. **Refresh token** : Implémenter le renouvellement automatique du token
+3. **Gestion des erreurs** : Gérer les erreurs 401, 403, 404, 500 de manière appropriée
+4. **Cache** : Mettre en cache les données statiques (notices, bibliothèques)
+5. **Pagination** : Gérer correctement la pagination pour les grandes listes
+6. **Accessibilité** : Respecter WCAG 2.1 AA dans votre front-end personnalisé
+
+---
+
 ## Support
 
 - Documentation Swagger : `/api/docs/`
+- Schéma OpenAPI : `/api/schema/`
 - Contact : api@example.com
 

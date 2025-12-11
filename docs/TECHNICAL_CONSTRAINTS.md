@@ -142,6 +142,177 @@ flowchart TB
 
 ## Architecture système
 
+### Architecture Back-end/Front-end séparée
+
+MediaBib utilise une **architecture séparée** entre le back-end d'administration et le front-end public (OPAC). Cette séparation offre flexibilité, sécurité et possibilité de personnalisation.
+
+#### Principe de séparation
+
+```mermaid
+flowchart TB
+    subgraph "Back-end Django"
+        ADMIN_VIEWS[Vues Django Templates<br/>Interface Administration]
+        API_VIEWSETS[ViewSets API REST<br/>Endpoints OPAC]
+        MODELS[Modèles Django]
+        SERVICES[Services Métier]
+    end
+    
+    subgraph "Front-end OPAC"
+        SKELETON[Squelette fourni<br/>Django Templates + JS]
+        CUSTOM[Front-end personnalisé<br/>React/Vue/Angular/etc.]
+    end
+    
+    subgraph "Base de données"
+        DB[(PostgreSQL)]
+    end
+    
+    ADMIN_VIEWS --> MODELS
+    API_VIEWSETS --> MODELS
+    MODELS --> SERVICES
+    SERVICES --> DB
+    
+    SKELETON -->|API REST| API_VIEWSETS
+    CUSTOM -->|API REST| API_VIEWSETS
+    
+    style ADMIN_VIEWS fill:#e1f5ff
+    style API_VIEWSETS fill:#e8f5e9
+    style SKELETON fill:#fff4e1
+    style CUSTOM fill:#fff4e1
+```
+
+#### Back-end Django (Administration)
+
+**Rôle** : Interface complète de gestion pour les bibliothécaires et administrateurs
+
+**Caractéristiques** :
+- **Vues Django classiques** : Templates Django avec formulaires complets
+- **Authentification** : Sessions Django (cookies sécurisés)
+- **Permissions** : RBAC granulaire par module et action
+- **URLs** : `/admin/`, `/catalog/`, `/circulation/`, `/patrons/`, etc.
+- **Accès** : Réservé aux utilisateurs staff (bibliothécaires, administrateurs)
+
+**Applications concernées** :
+- `core` : Administration système
+- `catalog` : Gestion du catalogue
+- `circulation` : Gestion des prêts
+- `patrons` : Gestion des lecteurs
+- `acquisitions` : Gestion des acquisitions
+- `serials` : Gestion des périodiques
+- `reports` : Statistiques et rapports
+- `sites` : Gestion multi-sites
+
+#### Front-end OPAC (Portail Public)
+
+**Rôle** : Portail public accessible aux visiteurs et lecteurs
+
+**Architecture** :
+- **API REST uniquement** : L'application `opac` Django fournit exclusivement des endpoints API
+- **Pas d'interface Django classique** : Pas de vues templates pour le public
+- **Squelette fourni** : Template de base optionnel (Django Templates + JavaScript)
+- **Front-end personnalisé** : Possibilité de créer un front-end avec n'importe quelle technologie
+
+**Caractéristiques** :
+- **Authentification** : JWT (JSON Web Tokens) pour les lecteurs
+- **CORS activé** : Pour permettre les front-ends externes
+- **Endpoints** : `/api/v1/opac/`
+- **Accès** : Public (recherche) ou authentifié (compte lecteur)
+
+#### Communication API REST
+
+**Protocole** : REST API avec JSON
+
+**Authentification différenciée** :
+
+| Type | Méthode | Usage |
+|------|---------|-------|
+| **Back-end Admin** | Sessions Django (cookies) | Interface d'administration |
+| **Front-end OPAC** | JWT (JSON Web Tokens) | Portail public |
+
+**Base URL** :
+```
+https://votre-instance.com/api/v1/
+```
+
+**Endpoints OPAC** :
+```
+https://votre-instance.com/api/v1/opac/
+```
+
+**Endpoints Admin** :
+```
+https://votre-instance.com/api/v1/admin/
+```
+
+#### Squelette Front-end fourni
+
+**Emplacement** : `opac/templates/opac/` et `opac/static/opac/`
+
+**Technologies** :
+- Django Templates (structure HTML)
+- Vanilla JavaScript (ES6+)
+- Tailwind CSS / Bootstrap 5
+- Client API REST intégré
+
+**Caractéristiques** :
+- Design responsive (mobile-first)
+- Accessibilité WCAG 2.1 AA
+- Gestion JWT intégrée
+- Prêt à être personnalisé ou remplacé
+
+#### Front-end personnalisé
+
+**Possibilité** : Les développeurs peuvent créer leur propre front-end avec n'importe quelle technologie.
+
+**Technologies supportées** :
+- **Frameworks JavaScript** : React, Vue.js, Angular, Svelte, Next.js, Nuxt.js
+- **Frameworks CSS** : Tailwind CSS, Bootstrap, Material-UI, Chakra UI
+- **Langages** : TypeScript, JavaScript (ES6+)
+- **Outils de build** : Webpack, Vite, Parcel, Rollup
+- **Applications mobiles** : React Native, Flutter, Ionic
+
+**Documentation** :
+- Documentation complète de l'API REST
+- Schéma OpenAPI/Swagger (`/api/schema/`)
+- Exemples d'intégration pour différentes technologies
+
+#### Contraintes techniques
+
+**CORS (Cross-Origin Resource Sharing)** :
+- Configuration obligatoire pour permettre les front-ends externes
+- Liste des origines autorisées à configurer dans `settings.py`
+- **Exemple** :
+```python
+CORS_ALLOWED_ORIGINS = [
+    "https://votre-frontend.com",
+    "http://localhost:3000",  # Développement
+]
+CORS_ALLOW_CREDENTIALS = True
+```
+
+**Sécurité API** :
+- Rate limiting différencié (anonyme vs authentifié)
+- Validation des tokens JWT
+- Protection CSRF pour les endpoints admin
+- Headers de sécurité (CORS, Content-Type, etc.)
+
+**Performance** :
+- Cache des réponses API (Redis)
+- Pagination obligatoire pour les listes
+- Optimisation des requêtes SQL (select_related, prefetch_related)
+
+#### Avantages de cette architecture
+
+1. **Séparation des préoccupations** : Back-end et front-end indépendants
+2. **Flexibilité** : Choix libre de la technologie front-end
+3. **Sécurité** : API séparée avec authentification différenciée
+4. **Évolutivité** : Développement et déploiement indépendants
+5. **Réutilisabilité** : API utilisable par plusieurs clients (web, mobile, etc.)
+6. **Personnalisation** : Chaque bibliothèque peut avoir son propre design
+
+---
+
+## Architecture système (détails techniques)
+
 ### Architecture Django MVT
 
 ```mermaid
@@ -738,6 +909,150 @@ AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = timedelta(minutes=30)
 AXES_LOCKOUT_TEMPLATE = 'auth/lockout.html'
 ```
+
+### Gestion des configurations email par bibliothèque
+
+MediaBib permet à chaque bibliothèque du réseau de configurer ses propres paramètres SMTP pour l'envoi d'emails (relances, réservations, notifications, etc.). Cette fonctionnalité garantit que les emails envoyés aux lecteurs proviennent de l'adresse email de leur bibliothèque respective.
+
+#### Architecture
+
+```mermaid
+flowchart TB
+    subgraph "Bibliothèque A"
+        LIB_A[Library A]
+        EMAIL_CONFIG_A[EmailConfiguration A]
+        EMAIL_ACCOUNT_A1[EmailAccount: bib1@orange.fr]
+        EMAIL_ACCOUNT_A2[EmailAccount: relance@bib1.fr]
+    end
+    
+    subgraph "Bibliothèque B"
+        LIB_B[Library B]
+        EMAIL_CONFIG_B[EmailConfiguration B]
+        EMAIL_ACCOUNT_B1[EmailAccount: bib2@gmail.com]
+    end
+    
+    subgraph "Système d'envoi"
+        NOTIF_SERVICE[Service Notifications]
+        SMTP_A[SMTP Bibliothèque A]
+        SMTP_B[SMTP Bibliothèque B]
+    end
+    
+    LIB_A --> EMAIL_CONFIG_A
+    EMAIL_CONFIG_A --> EMAIL_ACCOUNT_A1
+    EMAIL_CONFIG_A --> EMAIL_ACCOUNT_A2
+    
+    LIB_B --> EMAIL_CONFIG_B
+    EMAIL_CONFIG_B --> EMAIL_ACCOUNT_B1
+    
+    EMAIL_CONFIG_A --> NOTIF_SERVICE
+    EMAIL_CONFIG_B --> NOTIF_SERVICE
+    
+    NOTIF_SERVICE --> SMTP_A
+    NOTIF_SERVICE --> SMTP_B
+```
+
+#### Modèles de données
+
+**EmailConfiguration** : Configuration SMTP principale par bibliothèque
+- `library` : ForeignKey vers `Library` (bibliothèque concernée)
+- `host` : Hôte SMTP (ex: `smtp.orange.fr`, `smtp.gmail.com`)
+- `port` : Port SMTP (ex: `465`, `587`, `25`)
+- `protocol` : Protocole de sécurité (`SSL/TLS`, `STARTTLS`, `None`)
+- `use_authentication` : Booléen indiquant si l'authentification est requise
+- `default_from_email` : Adresse email par défaut pour l'envoi
+- `is_validated` : Booléen indiquant si la configuration a été testée et validée
+- `created_at`, `updated_at` : Horodatage
+
+**EmailAccount** : Comptes email associés à une configuration
+- `email_configuration` : ForeignKey vers `EmailConfiguration`
+- `email_address` : Adresse email (ex: `bib1@orange.fr`, `relance@bib1.fr`)
+- `username` : Nom d'utilisateur SMTP (peut être différent de l'adresse email)
+- `password_encrypted` : Mot de passe chiffré (Fernet encryption)
+- `use_for` : Champ texte décrivant l'utilisation (ex: "Relances", "Réservations", "Newsletter")
+- `is_active` : Booléen pour activer/désactiver le compte
+- `created_at`, `updated_at` : Horodatage
+
+#### Sécurité des mots de passe
+
+**Chiffrement obligatoire** :
+- Les mots de passe SMTP sont **toujours** chiffrés en base de données
+- Utilisation de `cryptography.fernet.Fernet` avec une clé dérivée de `SECRET_KEY`
+- Le mot de passe en clair n'est jamais stocké ni affiché
+- Décryptage uniquement lors de l'envoi d'email (en mémoire)
+
+**Implémentation** :
+
+```python
+from cryptography.fernet import Fernet
+from django.conf import settings
+import hashlib
+
+class EmailAccount(models.Model):
+    password_encrypted = models.TextField()
+    
+    def set_password(self, raw_password):
+        """Chiffre et stocke le mot de passe."""
+        key = self._get_encryption_key()
+        f = Fernet(key)
+        self.password_encrypted = f.encrypt(raw_password.encode()).decode()
+    
+    def get_password(self):
+        """Décrypte le mot de passe (usage interne uniquement)."""
+        key = self._get_encryption_key()
+        f = Fernet(key)
+        return f.decrypt(self.password_encrypted.encode()).decode()
+    
+    def _get_encryption_key(self):
+        """Génère une clé de chiffrement à partir de SECRET_KEY."""
+        # Dérivation de clé sécurisée
+        pass
+```
+
+**Bonnes pratiques** :
+- Ne jamais logger les mots de passe (même chiffrés)
+- Ne jamais retourner les mots de passe dans les réponses API
+- Utiliser des champs masqués dans les formulaires d'administration
+- Permettre la modification du mot de passe sans révéler l'ancien
+
+#### Interface de gestion
+
+**Tableau de configuration** :
+- Interface tableau similaire à PMB pour gérer les configurations
+- Colonnes : Adresse, Protocole, Hôte, Port, Protocole de sécurité, Authentification, Utilisateur, Validé, Utilisations, Actions
+- Actions : Modifier, Tester, Supprimer
+- Validation visuelle (icône ✓ ou ✗) pour les configurations testées
+
+**Fonctionnalités** :
+- Ajout/modification/suppression de configurations
+- Ajout/modification/suppression de comptes email
+- Test d'envoi d'email pour valider la configuration
+- Association automatique selon la bibliothèque émettrice
+- Gestion des utilisations multiples (un compte peut servir pour plusieurs types d'envois)
+
+#### Utilisation dans le système
+
+**Sélection automatique** :
+- Lors de l'envoi d'une notification (relance, réservation, etc.), le système sélectionne automatiquement la configuration email de la bibliothèque concernée
+- Si plusieurs comptes sont disponibles pour un type d'envoi, utilisation du compte par défaut ou du premier actif
+
+**Exemples d'utilisation** :
+- **Relance de prêt** : Bibliothèque A → Email depuis `bib1@orange.fr`
+- **Réservation disponible** : Bibliothèque B → Email depuis `bib2@gmail.com`
+- **Newsletter** : Bibliothèque A → Email depuis `newsletter@bib1.fr`
+
+#### Audit et traçabilité
+
+- Toutes les modifications de configurations email sont tracées dans le système d'audit
+- Logs des tests d'envoi (succès/échec)
+- Historique des changements de mots de passe (sans révéler les valeurs)
+- Alertes en cas d'échec répété d'envoi
+
+#### Contraintes techniques
+
+- **Permissions** : Seuls les administrateurs peuvent modifier les configurations email
+- **Validation** : Une configuration doit être testée avant d'être utilisée en production
+- **Fallback** : Si aucune configuration n'est disponible pour une bibliothèque, utilisation de la configuration système par défaut (avec alerte)
+- **Performance** : Les configurations sont mises en cache pour éviter les requêtes répétées
 
 ---
 

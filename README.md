@@ -93,19 +93,33 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 python manage.py migrate
 ```
 
-### 6. Créer un superutilisateur
-
-```bash
-python manage.py createsuperuser
-```
-
-### 7. Lancer le serveur de développement
+### 6. Lancer le serveur de développement
 
 ```bash
 python manage.py runserver
 ```
 
+### 7. Configuration initiale (Formulaire web)
+
 Accédez à l'application : http://localhost:8000
+
+**Le système détecte automatiquement** que c'est la première installation et vous redirige vers le formulaire de configuration initiale.
+
+#### Créer le compte coordonnateur
+
+Le formulaire web d'installation vous permet de créer le **coordonnateur** (superutilisateur initial) avec :
+
+- **Email** : Adresse email (utilisée pour la connexion)
+- **Nom et Prénom** : Informations du coordonnateur
+- **Nom du réseau** : Optionnel, pour réseaux de bibliothèques
+- **Mot de passe** : Mot de passe sécurisé avec confirmation
+
+Après la création du compte, vous êtes automatiquement connecté et pouvez :
+- Ajouter vos médiathèques
+- Configurer les paramètres système
+- Créer d'autres utilisateurs
+
+**Note** : Le formulaire d'installation n'est accessible que lors de la première installation. Après cela, utilisez la page de connexion normale.
 
 ---
 
@@ -207,6 +221,25 @@ Ce projet est distribué sous licence open source.
 Les contributions sont les bienvenues ! Veuillez consulter les issues ouvertes ou créer une nouvelle issue pour discuter des changements proposés.
 
 ---
+
+## Documentation
+
+### Documentation complète
+
+Pour une présentation détaillée du projet, consultez le **[Cahier des Charges](CAHIER_DES_CHARGES.md)** qui inclut :
+- Vue d'ensemble fonctionnelle complète
+- Workflows détaillés pour chaque type d'utilisateur (administrateur, bibliothécaire, lecteur)
+- Exemples concrets d'utilisation
+- Architecture technique simplifiée
+- Planning et phases de développement
+
+### Autres documents
+
+- **[APPLICATIONS.md](APPLICATIONS.md)** : Détails complets des 14 applications Django
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** : Architecture technique détaillée
+- **[docs/API.md](docs/API.md)** : Documentation de l'API REST
+- **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)** : Guide d'utilisation pour les bibliothécaires
+- **[docs/ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md)** : Guide d'administration système
 
 ## Contact
 

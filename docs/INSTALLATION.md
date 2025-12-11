@@ -85,13 +85,69 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 python manage.py migrate
 ```
 
-### 6. Créer un superutilisateur
+### 6. Configuration initiale (Formulaire web)
+
+Après avoir appliqué les migrations, lancez le serveur :
 
 ```bash
-python manage.py createsuperuser
+python manage.py runserver
 ```
 
-### 7. Lancer le serveur
+Accédez à l'application : http://localhost:8000
+
+**Le système détecte automatiquement** que c'est la première installation et vous redirige vers le formulaire de configuration initiale.
+
+#### Formulaire d'installation
+
+Le formulaire web d'installation vous permet de créer le **coordonnateur** (superutilisateur initial) avec toutes les informations nécessaires :
+
+**Champs du formulaire** :
+- **Email** (obligatoire) : Adresse email du coordonnateur
+  - Format email valide requis
+  - Utilisé pour la connexion et les notifications
+- **Nom** (obligatoire) : Nom de famille du coordonnateur
+- **Prénom** (obligatoire) : Prénom du coordonnateur
+- **Nom du réseau** (optionnel) : Nom du réseau de bibliothèques
+  - Exemple : "Réseau des Médiathèques de la Ville"
+  - Utile pour les réseaux multi-sites
+- **Mot de passe** (obligatoire) : Mot de passe sécurisé
+  - Minimum 8 caractères
+  - Doit contenir des lettres et des chiffres
+  - Confirmation du mot de passe requise
+- **Conditions d'utilisation** : Acceptation des conditions (case à cocher)
+
+**Processus** :
+1. Remplissez tous les champs obligatoires
+2. Vérifiez que le mot de passe respecte les critères de sécurité
+3. Acceptez les conditions d'utilisation
+4. Cliquez sur "Créer le compte coordonnateur"
+
+**Après la création** :
+- Le compte coordonnateur est créé avec tous les droits administrateur
+- Vous êtes automatiquement connecté
+- Redirection vers le tableau de bord administrateur
+- Message de bienvenue avec guide de démarrage
+- Possibilité immédiate d'ajouter des médiathèques
+
+**Note** : Si vous accédez à l'application après l'installation complète, vous serez redirigé vers la page de connexion normale. Le formulaire d'installation n'est accessible que lors de la première installation.
+
+### 7. Configuration post-installation
+
+Une fois le coordonnateur créé, vous pouvez :
+
+1. **Ajouter des médiathèques** :
+   - Menu : Sites > Bibliothèques > Ajouter
+   - Renseigner les informations de chaque médiathèque (nom, adresse, horaires, etc.)
+
+2. **Configurer les paramètres système** :
+   - Menu : Administration > Paramètres
+   - Configurer les règles de prêt, quotas, amendes, etc.
+
+3. **Créer d'autres utilisateurs** :
+   - Menu : Administration > Utilisateurs > Ajouter
+   - Attribuer des rôles et permissions
+
+### 8. Lancer le serveur (si pas déjà fait)
 
 ```bash
 python manage.py runserver
