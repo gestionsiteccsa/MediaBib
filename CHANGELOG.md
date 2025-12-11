@@ -20,11 +20,20 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### Added
 
+- Configuration Docker complète pour installation facile :
+  - `Dockerfile` : Image Docker pour l'application Django
+  - `docker-compose.yml` : Orchestration Django + PostgreSQL
+  - `docker-entrypoint.sh` : Script d'initialisation automatique
+  - `docker.env.example` : Template des variables d'environnement
+  - `.dockerignore` : Optimisation du build Docker
+  - `docs/DOCKER.md` : Documentation complète Docker
+- Ajout de `psycopg2-binary` dans `requirements.txt` pour PostgreSQL
 - Script `dev.ps1` pour Windows PowerShell (remplace Makefile)
 - Fichier `.flake8` pour la configuration du linter
 - Documentation complète dans `docs/` :
   - `README.md` : Index de la documentation
   - `INSTALLATION.md` : Guide d'installation
+  - `DOCKER.md` : Guide Docker
   - `ARCHITECTURE.md` : Architecture technique
   - `USER_GUIDE.md` : Manuel utilisateur
   - `ADMIN_GUIDE.md` : Guide d'administration

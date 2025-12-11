@@ -1,0 +1,104 @@
+# =============================================================================
+# docker-compose.yml - MediaBib
+# Orchestration Docker Compose pour développement et production
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # ===========================================================================
+  # Base de données PostgreSQL
+  # ===========================================================================
+  db:
+    image: postgres:15-alpine
+    container_name: mediabib_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mediabib}
+      POSTGRES_USER: ${POSTGRES_USER:-mediabib_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_in_production}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mediabib_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mediabib_network
+
+  # ===========================================================================
+  # Application Django
+  # ===========================================================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mediabib_web
+    restart: unless-stopped
+    command: gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 120 app.wsgi:application
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    env_file:
+      - docker.env
+    environment:
+      # Base de données (utilise le service db)
+      DATABASE_URL: postgres://${POSTGRES_USER:-mediabib_user}:${POSTGRES_PASSWORD:-changeme_in_production}@db:5432/${POSTGRES_DB:-mediabib}
+      # Django
+      DJANGO_SETTINGS_MODULE: app.settings
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - mediabib_network
+
+  # ===========================================================================
+  # Nginx (optionnel - pour production)
+  # ===========================================================================
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: mediabib_nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - static_volume:/static:ro
+  #     - media_volume:/media:ro
+  #   depends_on:
+  #     - web
+  #   networks:
+  #     - mediabib_network
+
+# =============================================================================
+# Volumes pour la persistance des données
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+
+# =============================================================================
+# Réseau Docker
+# =============================================================================
+networks:
+  mediabib_network:
+    driver: bridge
+

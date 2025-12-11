@@ -7,6 +7,7 @@ Bienvenue dans la documentation de MediaBib, le Système Intégré de Gestion de
 | Document | Description |
 |----------|-------------|
 | [INSTALLATION.md](INSTALLATION.md) | Guide d'installation complet |
+| [DOCKER.md](DOCKER.md) | Installation et utilisation avec Docker |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Architecture technique du projet |
 | [USER_GUIDE.md](USER_GUIDE.md) | Manuel utilisateur |
 | [ADMIN_GUIDE.md](ADMIN_GUIDE.md) | Guide d'administration |
