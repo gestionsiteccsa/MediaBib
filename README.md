@@ -46,9 +46,11 @@ MediaBib est un SIGB moderne développé en Django, conçu pour les réseaux de 
 ### 1. Cloner le projet
 
 ```bash
-git clone https://github.com/votre-utilisateur/MediaBib.git
+git clone git@github.com:gestionsiteccsa/MediaBib.git
 cd MediaBib
 ```
+
+**Note** : Le clonage crée automatiquement le dossier `MediaBib`. Le `Dockerfile` est déjà présent dans le projet cloné.
 
 ### 2. Créer un environnement virtuel
 
@@ -70,7 +72,7 @@ pip install -r requirements.txt
 
 ### 4. Configurer l'environnement
 
-Copier le fichier de configuration exemple :
+Copier le fichier de configuration exemple à la racine du projet :
 
 ```bash
 # Windows
@@ -79,6 +81,8 @@ copy env.example .env
 # Linux / macOS
 cp env.example .env
 ```
+
+**Important** : Le fichier `.env` doit être créé à la racine du projet (dans le dossier `MediaBib`).
 
 Modifier le fichier `.env` avec vos paramètres :
 

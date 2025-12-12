@@ -27,9 +27,11 @@ Ce guide explique comment installer et configurer MediaBib sur votre système.
 ### 1. Cloner le projet
 
 ```bash
-git clone https://github.com/votre-repo/mediabib.git
-cd mediabib
+git clone git@github.com:gestionsiteccsa/MediaBib.git
+cd MediaBib
 ```
+
+**Note** : Le clonage crée automatiquement le dossier `MediaBib`.
 
 ### 2. Créer l'environnement virtuel
 
@@ -52,6 +54,8 @@ pip install -r requirements.txt
 ```
 
 ### 4. Configurer l'environnement
+
+**Important** : Le fichier `.env` doit être créé à la racine du projet (dans le dossier `MediaBib`).
 
 ```bash
 # Windows

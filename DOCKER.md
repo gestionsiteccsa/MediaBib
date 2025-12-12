@@ -21,11 +21,15 @@ docker-compose --version
 ### 1. Cloner le projet
 
 ```bash
-git clone https://github.com/votre-repo/mediabib.git
-cd mediabib
+git clone git@github.com:gestionsiteccsa/MediaBib.git
+cd MediaBib
 ```
 
+**Note** : Le clonage crée automatiquement le dossier `MediaBib`. Le `Dockerfile` et tous les fichiers Docker nécessaires sont déjà présents dans le projet cloné.
+
 ### 2. Configurer les variables d'environnement
+
+**Important** : Le fichier `docker.env` doit être créé à la racine du projet (dans le dossier `MediaBib`).
 
 ```bash
 # Windows
